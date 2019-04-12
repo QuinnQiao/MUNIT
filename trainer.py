@@ -46,7 +46,7 @@ class MUNIT_Trainer(nn.Module):
 
         # Load VGG model if needed
         if 'vgg_w' in hyperparameters.keys() and hyperparameters['vgg_w'] > 0:
-            self.vgg = load_vgg16(hyperparameters['vgg_model_path'] + '/models')
+            self.vgg = load_vgg16(hyperparameters['vgg_model_path'] + '/models').cuda(self.device)
             self.vgg.eval()
             for param in self.vgg.parameters():
                 param.requires_grad = False
@@ -117,8 +117,8 @@ class MUNIT_Trainer(nn.Module):
         self.gen_opt.step()
 
     def compute_vgg_loss(self, vgg, img, target):
-        img_vgg = vgg_preprocess(img)
-        target_vgg = vgg_preprocess(target)
+        img_vgg = vgg_preprocess(img, self.device)
+        target_vgg = vgg_preprocess(target, self.device)
         img_fea = vgg(img_vgg)
         target_fea = vgg(target_vgg)
         return torch.mean((self.instancenorm(img_fea) - self.instancenorm(target_fea)) ** 2)
@@ -231,7 +231,7 @@ class UNIT_Trainer(nn.Module):
 
         # Load VGG model if needed
         if 'vgg_w' in hyperparameters.keys() and hyperparameters['vgg_w'] > 0:
-            self.vgg = load_vgg16(hyperparameters['vgg_model_path'] + '/models')
+            self.vgg = load_vgg16(hyperparameters['vgg_model_path'] + '/models').cuda(self.device)
             self.vgg.eval()
             for param in self.vgg.parameters():
                 param.requires_grad = False
@@ -308,8 +308,8 @@ class UNIT_Trainer(nn.Module):
         self.gen_opt.step()
 
     def compute_vgg_loss(self, vgg, img, target):
-        img_vgg = vgg_preprocess(img)
-        target_vgg = vgg_preprocess(target)
+        img_vgg = vgg_preprocess(img, self.device)
+        target_vgg = vgg_preprocess(target, self.device)
         img_fea = vgg(img_vgg)
         target_fea = vgg(target_vgg)
         return torch.mean((self.instancenorm(img_fea) - self.instancenorm(target_fea)) ** 2)
