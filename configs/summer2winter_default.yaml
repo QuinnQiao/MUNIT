@@ -52,4 +52,4 @@ new_size: 256                               # first resize the shortest image si
 crop_image_height: 256                      # random crop image of this height
 crop_image_width: 256                       # random crop image of this width
 # data_root: ./datasets/summer2winter_yosemite256/summer2winter_yosemite     # dataset folder location
-data_root: /home/quinn/Document/datasets/summer2winter
+data_root: /home/quinn/Documents/datasets/summer2winter_yosemite
