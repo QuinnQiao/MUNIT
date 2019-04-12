@@ -67,7 +67,7 @@ class MUNIT_Trainer(nn.Module):
 
     def gen_update(self, x_a, x_b, hyperparameters):
         self.gen_opt.zero_grad()
-        s_a = Variable(torch.randn(x_a.size(0), self.style_dim, 1, 1).(self.device))
+        s_a = Variable(torch.randn(x_a.size(0), self.style_dim, 1, 1).cuda(self.device))
         s_b = Variable(torch.randn(x_b.size(0), self.style_dim, 1, 1).cuda(self.device))
         # encode
         c_a, s_a_prime = self.gen_a.encode(x_a)
