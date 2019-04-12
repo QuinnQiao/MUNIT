@@ -22,6 +22,7 @@ parser.add_argument('--config', type=str, default='configs/edges2handbags_folder
 parser.add_argument('--output_path', type=str, default='.', help="outputs path")
 parser.add_argument("--resume", action="store_true")
 parser.add_argument('--trainer', type=str, default='MUNIT', help="MUNIT|UNIT")
+parser.add_argument('--gpu_id', type=int, default=0, help='which gpu to use')
 opts = parser.parse_args()
 
 cudnn.benchmark = True
@@ -31,20 +32,21 @@ config = get_config(opts.config)
 max_iter = config['max_iter']
 display_size = config['display_size']
 config['vgg_model_path'] = opts.output_path
+device = 'cuda:%d'%opts.gpu_id
 
 # Setup model and data loader
 if opts.trainer == 'MUNIT':
-    trainer = MUNIT_Trainer(config)
+    trainer = MUNIT_Trainer(config, device)
 elif opts.trainer == 'UNIT':
-    trainer = UNIT_Trainer(config)
+    trainer = UNIT_Trainer(config, device)
 else:
     sys.exit("Only support MUNIT|UNIT")
-trainer.cuda()
+trainer.cuda(device)
 train_loader_a, train_loader_b, test_loader_a, test_loader_b = get_all_data_loaders(config)
-train_display_images_a = torch.stack([train_loader_a.dataset[i] for i in range(display_size)]).cuda()
-train_display_images_b = torch.stack([train_loader_b.dataset[i] for i in range(display_size)]).cuda()
-test_display_images_a = torch.stack([test_loader_a.dataset[i] for i in range(display_size)]).cuda()
-test_display_images_b = torch.stack([test_loader_b.dataset[i] for i in range(display_size)]).cuda()
+train_display_images_a = torch.stack([train_loader_a.dataset[i] for i in range(display_size)]).cuda(device)
+train_display_images_b = torch.stack([train_loader_b.dataset[i] for i in range(display_size)]).cuda(device)
+test_display_images_a = torch.stack([test_loader_a.dataset[i] for i in range(display_size)]).cuda(device)
+test_display_images_b = torch.stack([test_loader_b.dataset[i] for i in range(display_size)]).cuda(device)
 
 # Setup logger and output folders
 model_name = os.path.splitext(os.path.basename(opts.config))[0]
@@ -58,7 +60,7 @@ iterations = trainer.resume(checkpoint_directory, hyperparameters=config) if opt
 while True:
     for it, (images_a, images_b) in enumerate(zip(train_loader_a, train_loader_b)):
         trainer.update_learning_rate()
-        images_a, images_b = images_a.cuda().detach(), images_b.cuda().detach()
+        images_a, images_b = images_a.cuda(device).detach(), images_b.cuda(device).detach()
 
         with Timer("Elapsed time in update: %f"):
             # Main training code
