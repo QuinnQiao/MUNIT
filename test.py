@@ -27,6 +27,8 @@ parser.add_argument('--synchronized', action='store_true', help="whether use syn
 parser.add_argument('--output_only', action='store_true', help="whether use synchronized style code or not")
 parser.add_argument('--output_path', type=str, default='.', help="path for logs, checkpoints, and VGG model weight")
 parser.add_argument('--trainer', type=str, default='MUNIT', help="MUNIT|UNIT")
+parser.add_argument('--gpu_id', type=int, default=0, help="which gpu to use")
+parser.add_argument('--input_id', type=int, help='a identifier for input image')
 opts = parser.parse_args()
 
 
@@ -36,6 +38,7 @@ torch.cuda.manual_seed(opts.seed)
 if not os.path.exists(opts.output_folder):
     os.makedirs(opts.output_folder)
 
+device = 'cuda:%d'%opts.gpu_id
 # Load experiment setting
 config = get_config(opts.config)
 opts.num_style = 1 if opts.style != '' else opts.num_style
@@ -44,9 +47,9 @@ opts.num_style = 1 if opts.style != '' else opts.num_style
 config['vgg_model_path'] = opts.output_path
 if opts.trainer == 'MUNIT':
     style_dim = config['gen']['style_dim']
-    trainer = MUNIT_Trainer(config)
+    trainer = MUNIT_Trainer(config, device)
 elif opts.trainer == 'UNIT':
-    trainer = UNIT_Trainer(config)
+    trainer = UNIT_Trainer(config, device)
 else:
     sys.exit("Only support MUNIT|UNIT")
 
@@ -59,7 +62,7 @@ except:
     trainer.gen_a.load_state_dict(state_dict['a'])
     trainer.gen_b.load_state_dict(state_dict['b'])
 
-trainer.cuda()
+trainer.cuda(device)
 trainer.eval()
 encode = trainer.gen_a.encode if opts.a2b else trainer.gen_b.encode # encode function
 style_encode = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # encode function
@@ -77,14 +80,14 @@ with torch.no_grad():
     transform = transforms.Compose([transforms.Resize(new_size),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    image = Variable(transform(Image.open(opts.input).convert('RGB')).unsqueeze(0).cuda())
-    style_image = Variable(transform(Image.open(opts.style).convert('RGB')).unsqueeze(0).cuda()) if opts.style != '' else None
+    image = Variable(transform(Image.open(opts.input).convert('RGB')).unsqueeze(0).cuda(device))
+    style_image = Variable(transform(Image.open(opts.style).convert('RGB')).unsqueeze(0).cuda(device)) if opts.style != '' else None
 
     # Start testing
     content, _ = encode(image)
 
     if opts.trainer == 'MUNIT':
-        style_rand = Variable(torch.randn(opts.num_style, style_dim, 1, 1).cuda())
+        style_rand = Variable(torch.randn(opts.num_style, style_dim, 1, 1).cuda(device))
         if opts.style != '':
             _, style = style_encode(style_image)
         else:
@@ -93,17 +96,17 @@ with torch.no_grad():
             s = style[j].unsqueeze(0)
             outputs = decode(content, s)
             outputs = (outputs + 1) / 2.
-            path = os.path.join(opts.output_folder, 'output{:03d}.jpg'.format(j))
+            path = os.path.join(opts.output_folder, '{:02d}_output{:03d}.jpg'.format(opts.input_id, j))
             vutils.save_image(outputs.data, path, padding=0, normalize=True)
     elif opts.trainer == 'UNIT':
         outputs = decode(content)
         outputs = (outputs + 1) / 2.
-        path = os.path.join(opts.output_folder, 'output.jpg')
+        path = os.path.join(opts.output_folder, '{:02d}_output.jpg'.format(opts.input_id))
         vutils.save_image(outputs.data, path, padding=0, normalize=True)
     else:
         pass
 
     if not opts.output_only:
         # also save input images
-        vutils.save_image(image.data, os.path.join(opts.output_folder, 'input.jpg'), padding=0, normalize=True)
+        vutils.save_image(image.data, os.path.join(opts.output_folder, '{:02d}_input.jpg'.format(opts.input_id)), padding=0, normalize=True)
 
