@@ -125,7 +125,7 @@ if opts.trainer == 'MUNIT':
                 cur_preds.append(pred)
             # path = os.path.join(opts.output_folder, 'input{:03d}_output{:03d}.jpg'.format(i, j))
             basename = os.path.basename(names[1])
-            path = os.path.join(opts.output_folder, basename+"_random_%02d"%j)
+            path = os.path.join(opts.output_folder, ("random_%02d_"%j)+basename)
             if not os.path.exists(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
             vutils.save_image(outputs.data, path, padding=0, normalize=True)
@@ -133,7 +133,7 @@ if opts.trainer == 'MUNIT':
             outputs = decode(content, s)
             outputs = (outputs + 1) / 2.
             basename = os.path.basename(names[1])
-            path = os.path.join(opts.output_folder, basename+"_encode_%02d"%j)
+            path = os.path.join(opts.output_folder, ("encode_%02d_"%j)+basename)
             if not os.path.exists(os.path.dirname(path)):
                 os.makedirs(os.path.dirname(path))
             vutils.save_image(outputs.data, path, padding=0, normalize=True)
