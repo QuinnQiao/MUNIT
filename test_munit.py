@@ -42,7 +42,7 @@ config = get_config(opts.config)
 
 config['vgg_model_path'] = opts.output_path
 
-if not os.path.exist(opts.output_folder):
+if not os.path.exists(opts.output_folder):
     os.makedirs(opts.output_folder)
 
 style_dim = config['gen']['style_dim']
@@ -89,21 +89,21 @@ save_images(opts.output_folder, 'random.jpg', images_random, num_input)
 if opts.style_folder is None:
     sys.exit(0)
 
-images_style = []
+images_encode = []
 
 style_loader = get_data_loader_folder(opts.style_folder, 1, False, new_size=config['new_size'], crop=False)
 
 blank_img = Image.open(opts.blank_img)
 to_tensor = transforms.ToTensor()
 blank_img = to_tensor(blank_img).unsqueeze(0)
-images_style.append(blank_img)
+images_encode.append(blank_img)
 for data in content_loader:
-    images_style.append((data.data+1)/2)
+    images_encode.append((data.data+1)/2)
 
 num_style = 0
 for data in style_loader:
     num_style += 1
-    images_style.append((data.data+1)/2)
+    images_encode.append((data.data+1)/2)
     
     data = data.to(device)
     with torch.no_grad():
