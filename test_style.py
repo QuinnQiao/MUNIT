@@ -100,17 +100,18 @@ elif opts.test_mode == 'withindomain':
         
         data = data.to(device)
         with torch.no_grad():
-            content, style = encode_style(data)
+            content, style = encode(data)
         content_encode.append(content)
         style_encode.append(style)
 
     num_input = len(content_encode)  
-    for j in range(num_input):
-        content = content_encode[j]
-        style = style_encode[j]
-        with torch.no_grad():
-            img = decode(content, style)
-        images.append((img.cpu().data+1)/2)
+    for i in range(num_input):
+        content = content_encode[i]
+        for j in range(num_input):
+            style = style_encode[j]
+            with torch.no_grad():
+                img = decode(content, style)
+            images.append((img.cpu().data+1)/2)
 
     assert len(images) == num_input**2
     save_images(opts.output_folder, 'withindomain.jpg', images, num_input)
