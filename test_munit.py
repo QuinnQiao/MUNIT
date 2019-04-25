@@ -77,7 +77,7 @@ num_input = len(content_encode)
 for i in range(opts.num_style):
     style = style_random[i].unsqueeze(0)
     for j in range(num_input):
-        content = content_encode[i]
+        content = content_encode[j]
         with torch.no_grad():
             img = decode(content, style)
         images_random.append((img.cpu().data+1)/2)
@@ -110,7 +110,7 @@ for data in style_loader:
         _, style = encode_style(data)
 
     for j in range(num_input):
-        content = content_encode[i]
+        content = content_encode[j]
         with torch.no_grad():
             img = decode(content, style)
         images_encode.append((img.cpu().data+1)/2)
