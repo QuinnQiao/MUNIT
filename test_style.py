@@ -71,11 +71,12 @@ if opts.test_mode == 'continuity':
             _, style = encode_style(data)
         style_end.append(style)
     assert len(style_end) == 2
-    delta = (style_end[1] - style_end[0]) / (opts.num_style-1)
+    delta = (style_end[1] - style_end[0]) / (opts.num_style - 1)
 
     content_loader = get_data_loader_folder(opts.input_folder, 1, False, new_size=config['new_size'], crop=False)
     num_input = 0
     for data in content_loader:
+        num_input += 1
         images.append((data+1)/2)
         data = data.to(device)
         with torch.no_grad():
