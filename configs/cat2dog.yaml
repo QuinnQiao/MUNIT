@@ -45,8 +45,8 @@ dis:
 input_dim_a: 3                              # number of image channels [1/3]
 input_dim_b: 3                              # number of image channels [1/3]
 num_workers: 8                              # number of data loading threads
-new_size: 178                               # first resize the shortest image side to this size
-crop_image_height: 178                      # random crop image of this height
-crop_image_width: 178                       # random crop image of this width
+new_size: 176                               # first resize the shortest image side to this size
+crop_image_height: 176                      # random crop image of this height
+crop_image_width: 176                       # random crop image of this width
 # data_root: ./datasets/cat2dog/     # dataset folder location
 data_root: /home/quinn/Documents/datasets/cat2dog

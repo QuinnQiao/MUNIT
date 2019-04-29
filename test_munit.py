@@ -1,4 +1,4 @@
-from utils import get_config, get_data_loader_folder
+from utils import get_config, get_data_loader_folder, get_data_loader_folder_centercrop
 from trainer import MUNIT_Trainer
 from torch import nn
 import torch.nn.functional as F
@@ -30,6 +30,7 @@ parser.add_argument('--style_folder', type=str, default=None, help="style image 
 parser.add_argument('--output_path', type=str, default='.', help="path for logs, checkpoints, and VGG model weight")
 parser.add_argument('--gpu_id', type=int, default=0, help="which gpu to use")
 parser.add_argument('--blank_img', type=str, help='the blank image for display (if needed) when style transfer')
+parser.add_argument('--centercrop', action='store_true', default=False, help='if centercrop when load dataset')
 
 opts = parser.parse_args()
 
@@ -58,8 +59,10 @@ encode = trainer.gen_a.encode if opts.a2b else trainer.gen_b.encode # encode fun
 decode = trainer.gen_b.decode if opts.a2b else trainer.gen_a.decode # decode function
 encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # encode function
 
+get_loader = get_data_loader_folder_centercrop if opts.centercrop else get_data_loader_folder
+
 # random style
-content_loader = get_data_loader_folder(opts.input_folder, 1, False, new_size=config['new_size'], crop=False)
+content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], crop=False)
 content_encode = []
 
 style_random = torch.randn(opts.num_style, style_dim, 1, 1).to(device)
@@ -91,7 +94,7 @@ if opts.style_folder is None:
 
 images_encode = []
 
-style_loader = get_data_loader_folder(opts.style_folder, 1, False, new_size=config['new_size'], crop=False)
+style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], crop=False)
 
 blank_img = Image.open(opts.blank_img)
 to_tensor = transforms.ToTensor()
