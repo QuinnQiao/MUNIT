@@ -63,7 +63,7 @@ if opts.test_mode == 'continuity':
     decode = trainer.gen_b.decode if opts.a2b else trainer.gen_a.decode
     encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode
 
-    style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], crop=False)
+    style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], crop=True)
     style_end = []
     images = []
     for i, data in enumerate(style_loader):
@@ -76,7 +76,7 @@ if opts.test_mode == 'continuity':
     assert len(style_end) == 2
     delta = (style_end[1] - style_end[0]) / (opts.num_style - 1)
 
-    content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], crop=False)
+    content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], crop=True)
     num_input = 0
     for data in content_loader:
         num_input += 1
@@ -96,7 +96,7 @@ elif opts.test_mode == 'withindomain':
     encode = trainer.gen_a.encode if opts.a2b else trainer.gen_b.encode
     decode = trainer.gen_a.decode if opts.a2b else trainer.gen_b.decode
 
-    loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], crop=False)
+    loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], crop=True)
     
     images = []
     content_encode, style_encode = [], []
