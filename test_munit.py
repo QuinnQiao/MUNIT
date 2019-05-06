@@ -62,7 +62,8 @@ encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # enco
 get_loader = get_data_loader_folder_centercrop if opts.centercrop else get_data_loader_folder
 
 # random style
-content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], crop=True)
+content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], 
+                            crop=True, height=config['new_size'], width=config['new_size'])
 content_encode = []
 
 style_random = torch.randn(opts.num_style, style_dim, 1, 1).to(device)
@@ -94,7 +95,8 @@ if opts.style_folder is None:
 
 images_encode = []
 
-style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], crop=True)
+style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], 
+                            crop=True, height=config['new_size'], width=config['new_size'])
 
 blank_img = Image.open(opts.blank_img).resize((config['new_size'], config['new_size']))
 to_tensor = transforms.ToTensor()
