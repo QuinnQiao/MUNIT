@@ -1,4 +1,4 @@
-from utils import get_config, get_data_loader_folder, get_data_loader_folder_centercrop
+from utils import get_config, get_data_loader_folder, get_data_loader_folder_centercrop, pytorch03_to_pytorch04
 from trainer import MUNIT_Trainer
 from torch import nn
 import torch.nn.functional as F
@@ -49,9 +49,14 @@ if not os.path.exists(opts.output_folder):
 style_dim = config['gen']['style_dim']
 trainer = MUNIT_Trainer(config, device)
 
-state_dict = torch.load(opts.checkpoint)
-trainer.gen_a.load_state_dict(state_dict['a'])
-trainer.gen_b.load_state_dict(state_dict['b'])
+try:
+    state_dict = torch.load(opts.checkpoint)
+    trainer.gen_a.load_state_dict(state_dict['a'])
+    trainer.gen_b.load_state_dict(state_dict['b'])
+except:
+    state_dict = pytorch03_to_pytorch04(torch.load(opts.checkpoint), opts.trainer)
+    trainer.gen_a.load_state_dict(state_dict['a'])
+    trainer.gen_b.load_state_dict(state_dict['b'])
 
 trainer.to(device)
 trainer.eval()
