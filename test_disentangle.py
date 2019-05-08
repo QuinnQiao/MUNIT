@@ -102,23 +102,23 @@ image12, image121, image122 = [], [], []
 for i in range(num_input):
     with torch.no_grad():
         img = decode2(content1[i], style2[i])
-        image12.append((img+1)/2)
+        image12.append((img.cpu().data+1)/2)
         content, style = encode2(img)
         img = decode1(content, style1[i])
-        image121.append((img+1)/2)
+        image121.append((img.cpu().data+1)/2)
         img = decode2(content2[i], style)
-        image122.append((img+1)/2)
+        image122.append((img.cpu().data+1)/2)
 
 image21, image212, image211 = [], [], []
 for i in range(num_input):
     with torch.no_grad():
         img = decode1(content2[i], style1[i])
-        image21.append((img+1)/2)
+        image21.append((img.cpu().data+1)/2)
         content, style = encode1(img)
         img = decode2(content, style2[i])
-        image212.append((img+1)/2)
+        image212.append((img.cpu().data+1)/2)
         img = decode1(content1[i], style)
-        image211.append((img+1)/2)
+        image211.append((img.cpu().data+1)/2)
 
 save_images(opts.output_folder, 'a2b.jpg', image1+image2+image12+image121+image122, num_input**2)
 save_images(opts.output_folder, 'b2a.jpg', image2+image1+image21+image212+image211, num_input**2)
