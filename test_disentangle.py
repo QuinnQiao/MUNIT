@@ -120,5 +120,5 @@ for i in range(num_input):
         img = decode1(content1[i], style)
         image211.append((img.cpu().data+1)/2)
 
-save_images(opts.output_folder, 'a2b.jpg', image1+image2+image12+image121+image122, num_input**2)
-save_images(opts.output_folder, 'b2a.jpg', image2+image1+image21+image212+image211, num_input**2)
+save_images(opts.output_folder, 'a2b.jpg', image1+image2+image12+image121+image122, num_input)
+save_images(opts.output_folder, 'b2a.jpg', image2+image1+image21+image212+image211, num_input)
