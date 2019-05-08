@@ -98,7 +98,7 @@ content2 = content2[:num_input]
 style1 = style1[:num_input]
 style2 = style2[:num_input]
 
-image12, image121, images122 = [], [], []
+image12, image121, image122 = [], [], []
 for i in range(num_input):
     with torch.no_grad():
         img = decode2(content1[i], style2[i])
@@ -109,7 +109,7 @@ for i in range(num_input):
         img = decode2(content2[i], style)
         image122.append((img+1)/2)
 
-image21, image212, images211 = [], [], []
+image21, image212, image211 = [], [], []
 for i in range(num_input):
     with torch.no_grad():
         img = decode1(content2[i], style1[i])
