@@ -139,7 +139,7 @@ style1_2[0] = style1_2[0].view(-1)
 style1_2[1] = style1_2[1].view(-1)
 print(style1[0][-1], style1[1][-1])
 print('medium:')
-print(style1[0][medium], style1[1][medium])
+print(style1[0][4], style1[1][4])
 print('min:')
 print(style1[0][0], style1[1][0])
 
@@ -160,7 +160,7 @@ for i in range(num_input):
         img = decode2(content2[i], style2[i])
         image2_2.append((img.cpu().data+1)/2)
         # trans
-        img = decode1(content2[i], style1[i])
+        img = decode1(content2[i], style1[i].view(1,-1))
         image2_1.append((img.cpu().data+1)/2)
         # cycle
         content, style = encode1(img)
@@ -186,21 +186,21 @@ print(torch.mean(torch.abs(content2[0]-content2_1[0])), torch.mean(torch.abs(con
 print('1.3 Difference between different content:')
 print(torch.mean(torch.abs(content2[0]-content2[1])), torch.mean(torch.abs(content2_1[0]-content2_1[1])))
 
-print('\n2.1 Magnitude of content:\nmax:')
+print('\n2.1 Magnitude of style:\nmax:')
 style2[0], _ = style2[0].view(-1).sort()
 style2[1], _ = style2[1].view(-1).sort()
 style2_1[0] = style2_1[0].view(-1)
 style2_1[1] = style2_1[1].view(-1)
 print(style2[0][-1], style2[1][-1])
 print('medium:')
-print(style2[0][medium], style2[1][medium])
+print(style2[0][4], style2[1][4])
 print('min:')
 print(style2[0][0], style2[1][0])
 
-print('2.2 Difference between cycle content:')
+print('2.2 Difference between cycle style:')
 print(torch.mean(torch.abs(style2[0]-style2_1[0])), torch.mean(torch.abs(style2[1]-style2_1[1])))
 
-print('2.3 Difference between different content:')
+print('2.3 Difference between different style:')
 print(torch.mean(torch.abs(style2[0]-style2[1])), torch.mean(torch.abs(style2_1[0]-style2_1[1])))
 
 save_images(opts.output_folder, 'b2a.jpg', image2+image2_2+image2_1+image2_1_2, num_input)
