@@ -113,6 +113,22 @@ for i in range(num_input):
         content1_2.append(content)
         image1_2_1.append((img.cpu().data+1)/2)
 
+print('1. Magnitude of content:\nmax:')
+content1[0], _ = content1[0].view(-1).sort()
+content1[1], _ = content1[1].view(-1).sort()
+print(content1[0][-1], content1[1][-1])
+print('medium:')
+medium = content1[0].size(0) // 2
+print(content1[0][medium], content1[1][medium])
+print('min:')
+print(content1[0][0], content1[1][0])
+
+print('2. Difference between cycle content:')
+print(torch.mean(torch.abs(content1[0]-content1_2[0])), torch.mean(torch.abs(content1[1]-content1_2[1])))
+
+print('3. Difference between different content:')
+print(torch.mean(torch.abs(content1[0]-content1[1])), torch.mean(torch.abs(content1_2[0]-content1_2[1])))
+
 save_images(opts.output_folder, 'a2b.jpg', image1+image1_1+image1_2+image1_2_1, num_input)
 
 # b2a
@@ -131,5 +147,20 @@ for i in range(num_input):
         img = decode2(content, style2[i])
         content2_1.append(content)
         image2_1_2.append((img.cpu().data+1)/2)
-        
+
+print('\n1. Magnitude of content:\nmax:')
+content2[0], _ = content2[0].view(-1).sort()
+content2[1], _ = content2[1].view(-1).sort()
+print(content2[0][-1], content2[1][-1])
+print('medium:')
+print(content2[0][medium], content2[1][medium])
+print('min:')
+print(content2[0][0], content2[1][0])
+
+print('2. Difference between cycle content:')
+print(torch.mean(torch.abs(content2[0]-content2_1[0])), torch.mean(torch.abs(content2[1]-content2_1[1])))
+
+print('3. Difference between different content:')
+print(torch.mean(torch.abs(content2[0]-content2[1])), torch.mean(torch.abs(content2_1[0]-content2_1[1])))
+
 save_images(opts.output_folder, 'b2a.jpg', image2+image2_2+image2_1+image2_1_2, num_input)
