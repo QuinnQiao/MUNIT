@@ -98,7 +98,7 @@ if num_input < num_input2:
 
 # a2b
 image1_1, image1_2, image1_2_1 = [], [], []
-content1_2, style1_2 = [], []
+content1_2, style2_1 = [], []
 for i in range(num_input):
     with torch.no_grad():
         # recon
@@ -111,10 +111,29 @@ for i in range(num_input):
         content, style = encode2(img)
         img = decode1(content, style1[i])
         content1_2.append(content)
-        style1_2.append(style)
+        style2_1.append(style)
         image1_2_1.append((img.cpu().data+1)/2)
 
-print('1.1 Magnitude of content:\nmax:')
+# b2a
+image2_2, image2_1, image2_1_2 = [], [], []
+content2_1, style1_2 = [], []
+for i in range(num_input):
+    with torch.no_grad():
+        # recon
+        img = decode2(content2[i], style2[i])
+        image2_2.append((img.cpu().data+1)/2)
+        # trans
+        img = decode1(content2[i], style1[i].view(1,-1))
+        image2_1.append((img.cpu().data+1)/2)
+        # cycle
+        content, style = encode1(img)
+        img = decode2(content, style2[i])
+        content2_1.append(content)
+        style1_2.append(style)
+        image2_1_2.append((img.cpu().data+1)/2)
+
+# LOG A
+print('Domain A:\n\n1.1 Magnitude of content:\nmax:')
 content1[0], _ = content1[0].view(-1).sort()
 content1[1], _ = content1[1].view(-1).sort()
 content1_2[0] = content1_2[0].view(-1)
@@ -122,7 +141,7 @@ content1_2[1] = content1_2[1].view(-1)
 print(content1[0][-1], content1[1][-1])
 print('medium:')
 medium = content1[0].size(0) // 2
-print(content1[0][medium], content1[1][medium])
+print((content1[0][medium-1]+content1[0][medium])/2, (content1[1][medium-1]+content1[1][medium])/2)
 print('min:')
 print(content1[0][0], content1[1][0])
 
@@ -139,7 +158,7 @@ style1_2[0] = style1_2[0].view(-1)
 style1_2[1] = style1_2[1].view(-1)
 print(style1[0][-1], style1[1][-1])
 print('medium:')
-print(style1[0][4], style1[1][4])
+print((style1[0][3]+style1[0][4])/2, (style1[1][3]+style1[1][4])/2)
 print('min:')
 print(style1[0][0], style1[1][0])
 
@@ -151,32 +170,15 @@ print(torch.mean(torch.abs(style1[0]-style1[1])), torch.mean(torch.abs(style1_2[
 
 save_images(opts.output_folder, 'a2b.jpg', image1+image1_1+image1_2+image1_2_1, num_input)
 
-# b2a
-image2_2, image2_1, image2_1_2 = [], [], []
-content2_1, style2_1 = [], []
-for i in range(num_input):
-    with torch.no_grad():
-        # recon
-        img = decode2(content2[i], style2[i])
-        image2_2.append((img.cpu().data+1)/2)
-        # trans
-        img = decode1(content2[i], style1[i].view(1,-1))
-        image2_1.append((img.cpu().data+1)/2)
-        # cycle
-        content, style = encode1(img)
-        img = decode2(content, style2[i])
-        content2_1.append(content)
-        style2_1.append(style)
-        image2_1_2.append((img.cpu().data+1)/2)
-
-print('\n1.1 Magnitude of content:\nmax:')
+# LOG B
+print('\nDomain B:\n\n1.1 Magnitude of content:\nmax:')
 content2[0], _ = content2[0].view(-1).sort()
 content2[1], _ = content2[1].view(-1).sort()
 content2_1[0] = content2_1[0].view(-1)
 content2_1[1] = content2_1[1].view(-1)
 print(content2[0][-1], content2[1][-1])
 print('medium:')
-print(content2[0][medium], content2[1][medium])
+print((content2[0][medium-1]+content2[0][medium])/2, (content2[1][medium-1]+content2[1][medium])/2)
 print('min:')
 print(content2[0][0], content2[1][0])
 
@@ -193,7 +195,7 @@ style2_1[0] = style2_1[0].view(-1)
 style2_1[1] = style2_1[1].view(-1)
 print(style2[0][-1], style2[1][-1])
 print('medium:')
-print(style2[0][4], style2[1][4])
+print((style2[0][3]+style2[0][4])/2, (style2[1][3]+style2[1][4])/2)
 print('min:')
 print(style2[0][0], style2[1][0])
 
