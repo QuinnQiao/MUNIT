@@ -97,7 +97,7 @@ if num_input < num_input2:
     style2 = style2[:num_input]
 
 # a2b
-image1_1, image1_2, image1_2_1 = [], []
+image1_1, image1_2, image1_2_1 = [], [], []
 content1_2 = []
 for i in range(num_input):
     with torch.no_grad():
@@ -116,6 +116,8 @@ for i in range(num_input):
 print('1. Magnitude of content:\nmax:')
 content1[0], _ = content1[0].view(-1).sort()
 content1[1], _ = content1[1].view(-1).sort()
+content1_2[0] = content1_2[0].view(-1)
+content1_2[1] = content1_2[1].view(-1)
 print(content1[0][-1], content1[1][-1])
 print('medium:')
 medium = content1[0].size(0) // 2
@@ -132,7 +134,7 @@ print(torch.mean(torch.abs(content1[0]-content1[1])), torch.mean(torch.abs(conte
 save_images(opts.output_folder, 'a2b.jpg', image1+image1_1+image1_2+image1_2_1, num_input)
 
 # b2a
-image2_2, image2_1, image2_1_2 = [], []
+image2_2, image2_1, image2_1_2 = [], [], []
 content2_1 = []
 for i in range(num_input):
     with torch.no_grad():
@@ -151,6 +153,8 @@ for i in range(num_input):
 print('\n1. Magnitude of content:\nmax:')
 content2[0], _ = content2[0].view(-1).sort()
 content2[1], _ = content2[1].view(-1).sort()
+content2_1[0] = content2_1[0].view(-1)
+content2_1[1] = content2_1[1].view(-1)
 print(content2[0][-1], content2[1][-1])
 print('medium:')
 print(content2[0][medium], content2[1][medium])
