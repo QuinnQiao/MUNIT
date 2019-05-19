@@ -98,74 +98,27 @@ content2 = content2[:num_input]
 style1 = style1[:num_input]
 style2 = style2[:num_input]
 
-# zero-c
-content1_zero = torch.zeros_like(content1[0])
-image1_zero_c = []
-# encode-style
+image12, image121, image122 = [], [], []
 for i in range(num_input):
     with torch.no_grad():
-        img = decode1(content1_zero, style1[i])
-    image1_zero_c.append((img.cpu().data+1)/2)
-# random-style
-style1_random = torch.randn(num_input, style1[0].size(1), style1[0].size(2), style1[0].size(3),
-                            device=style1[0].device)
-for j in range(num_input):
-    with torch.no_grad():
-        img = decode1(content1_zero, style1_random[j].unsqueeze(0))
-    image1_zero_c.append((img.cpu().data+1)/2)
+        img = decode2(content1[i], style2[i])
+        image12.append((img.cpu().data+1)/2)
+        content, style = encode2(img)
+        img = decode1(content, style1[i])
+        image121.append((img.cpu().data+1)/2)
+        img = decode2(content2[i], style)
+        image122.append((img.cpu().data+1)/2)
 
-save_images(opts.output_folder, '1_zero_c.jpg', image1+image1_zero_c, num_input)
-del image1_zero_c
-
-content2_zero = torch.zeros_like(content2[0])
-image2_zero_c = []
-# encode-style
+image21, image212, image211 = [], [], []
 for i in range(num_input):
     with torch.no_grad():
-        img = decode2(content2_zero, style2[i])
-    image2_zero_c.append((img.cpu().data+1)/2)
-# random-style
-style2_random = torch.randn(num_input, style2[0].size(1), style2[0].size(2), style2[0].size(3),
-                            device=style2[0].device)
-for j in range(num_input):
-    with torch.no_grad():
-        img = decode2(content2_zero, style2_random[j].unsqueeze(0))
-    image2_zero_c.append((img.cpu().data+1)/2)
+        img = decode1(content2[i], style1[i])
+        image21.append((img.cpu().data+1)/2)
+        content, style = encode1(img)
+        img = decode2(content, style2[i])
+        image212.append((img.cpu().data+1)/2)
+        img = decode1(content1[i], style)
+        image211.append((img.cpu().data+1)/2)
 
-save_images(opts.output_folder, '2_zero_c.jpg', image2+image2_zero_c, num_input)
-del image2_zero_c
-
-# zero-s
-style1_zero = torch.zeros_like(style1[0])
-# within-domain content
-image1_zero_s_within = []
-for i in range(num_input):
-    with torch.no_grad():
-        img = decode1(content1[i], style1_zero)
-    image1_zero_s_within.append((img.cpu().data+1)/2)
-# cross-domain content
-image1_zero_s_cross = []
-for i in range(num_input):
-    with torch.no_grad():
-        img = decode1(content2[i], style1_zero)
-    image1_zero_s_cross.append((img.cpu().data+1)/2)
-
-save_images(opts.output_folder, '1_zero_s.jpg', image1+image1_zero_s_within+image2+image1_zero_s_cross, num_input)
-del image1_zero_s_within, image1_zero_s_cross
-
-style2_zero = torch.zeros_like(style2[0])
-# within-domain content
-image2_zero_s_within = []
-for i in range(num_input):
-    with torch.no_grad():
-        img = decode2(content2[i], style2_zero)
-    image2_zero_s_within.append((img.cpu().data+1)/2)
-# cross-domain content
-image2_zero_s_cross = []
-for i in range(num_input):
-    with torch.no_grad():
-        img = decode2(content1[i], style2_zero)
-    image2_zero_s_cross.append((img.cpu().data+1)/2)
-
-save_images(opts.output_folder, '2_zero_s.jpg', image2+image2_zero_s_within+image1+image2_zero_s_cross, num_input)
-del image2_zero_s_within, image2_zero_s_cross
+save_images(opts.output_folder, 'a2b.jpg', image1+image2+image12+image121+image122, num_input)
+save_images(opts.output_folder, 'b2a.jpg', image2+image1+image21+image212+image211, num_input)
