@@ -95,7 +95,7 @@ content2 = content2[:num_input]
 style1 = style1[:num_input]
 style2 = style2[:num_input]
 
-style1_random = torch.randn(*style1[0].size())
+style1_random = torch.randn(*style1[0].size(), device=style1[0].device)
 step1 = style1_random / opts.style_interpolate
 # within-domain content
 image1 = []
@@ -120,7 +120,7 @@ for i in range(num_input):
 save_images(opts.output_folder, '1_interpolate_s.jpg', image1, 2*(opts.style_interpolate+1))
 del image1
 
-style2_random = torch.randn(*style2[0].size())
+style2_random = torch.randn(*style2[0].size(), device=style2[0].device)
 step2 = style2_random / opts.style_interpolate
 # within-domain content
 image2 = []
