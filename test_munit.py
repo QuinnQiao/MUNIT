@@ -1,4 +1,4 @@
-from utils import get_config, get_data_loader_folder, get_data_loader_folder_centercrop, pytorch03_to_pytorch04
+from utils import get_config, pytorch03_to_pytorch04
 from trainer import MUNIT_Trainer
 from torch import nn
 import torch.nn.functional as F
@@ -21,11 +21,12 @@ def save_images(save_dir, save_name, images, num_input):
 parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default='configs/edges2handbags_folder', help='Path to the config file.')
 parser.add_argument('--input_folder', type=str, help="input image folder")
+parser.add_argument('--input_list', type=str, help="input image list")
 parser.add_argument('--output_folder', type=str, help="output image folder")
 parser.add_argument('--checkpoint', type=str, help="checkpoint of autoencoders")
 parser.add_argument('--a2b', type=int, help="1 for a2b and 0 for b2a", default=1)
 parser.add_argument('--seed', type=int, default=1, help="random seed")
-parser.add_argument('--num_style',type=int, default=3, help="number of styles to sample")
+parser.add_argument('--num_style',type=int, default=20, help="number of styles to sample")
 parser.add_argument('--style_folder', type=str, default=None, help="style image folder")
 parser.add_argument('--output_path', type=str, default='.', help="path for logs, checkpoints, and VGG model weight")
 parser.add_argument('--gpu_id', type=int, default=0, help="which gpu to use")
@@ -64,67 +65,86 @@ encode = trainer.gen_a.encode if opts.a2b else trainer.gen_b.encode # encode fun
 decode = trainer.gen_b.decode if opts.a2b else trainer.gen_a.decode # decode function
 encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # encode function
 
-get_loader = get_data_loader_folder_centercrop if opts.centercrop else get_data_loader_folder
-
-# random style
-content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], 
-                            crop=True, height=config['new_size'], width=config['new_size'])
-content_encode = []
+transform_list = [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+if opts.centercrop:
+    transform_list = [transforms.CenterCrop(config['new_size'])].extend(transform_list)
+transform = transforms.Compose(transform_list)
 
 style_random = torch.randn(opts.num_style, style_dim, 1, 1).to(device)
-images_random = []
 
-for data in content_loader:
-    images_random.append((data.data+1)/2)
-    data = data.to(device)
-    with torch.no_grad():
-        content, _ = encode(data)
-    content_encode.append(content)
+with open(opts.input_list, 'w') as f:
+    for i in f:
+        i = i.strip()
+        if i.startswith('#'):
+            continue
+        img = Image.open(os.path.join(opts.input_folder, i+'.jpg'))
+        img = transform(img)
+        img = img.to(device)
+        content, _ = encode(img)
+        for j in range(opts.num_style):
+            img_trans = decode(content, style_random[j].unsqueeze(0))
+            img_trans = (img_trans.cpu().data+1)/2
+            vutils.save_image(img_trans, os.path.join(opts.output_folder, i+'_{}.jpg'.format(j)), nrow=1)
 
-num_input = len(content_encode)
+# # random style
+# content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], 
+#                             crop=True, height=config['new_size'], width=config['new_size'])
+# content_encode = []
 
-for i in range(opts.num_style):
-    style = style_random[i].unsqueeze(0)
-    for j in range(num_input):
-        content = content_encode[j]
-        with torch.no_grad():
-            img = decode(content, style)
-        images_random.append((img.cpu().data+1)/2)
+# style_random = torch.randn(opts.num_style, style_dim, 1, 1).to(device)
+# images_random = []
 
-assert len(images_random) == num_input*(1+opts.num_style)
-save_images(opts.output_folder, 'random.jpg', images_random, num_input)
+# for data in content_loader:
+#     images_random.append((data.data+1)/2)
+#     data = data.to(device)
+#     with torch.no_grad():
+#         content, _ = encode(data)
+#     content_encode.append(content)
 
-# encoded style
-if opts.style_folder is None:
-    sys.exit(0)
+# num_input = len(content_encode)
 
-images_encode = []
+# for i in range(opts.num_style):
+#     style = style_random[i].unsqueeze(0)
+#     for j in range(num_input):
+#         content = content_encode[j]
+#         with torch.no_grad():
+#             img = decode(content, style)
+#         images_random.append((img.cpu().data+1)/2)
 
-style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], 
-                            crop=True, height=config['new_size'], width=config['new_size'])
+# assert len(images_random) == num_input*(1+opts.num_style)
+# save_images(opts.output_folder, 'random.jpg', images_random, num_input)
 
-blank_img = Image.open(opts.blank_img).resize((config['new_size'], config['new_size']))
-to_tensor = transforms.ToTensor()
-blank_img = to_tensor(blank_img).unsqueeze(0)
-images_encode.append(blank_img)
-for data in content_loader:
-    images_encode.append((data.data+1)/2)
+# # encoded style
+# if opts.style_folder is None:
+#     sys.exit(0)
 
-num_style = 0
-for data in style_loader:
-    num_style += 1
-    images_encode.append((data.data+1)/2)
+# images_encode = []
+
+# style_loader = get_loader(opts.style_folder, 1, False, new_size=config['new_size'], 
+#                             crop=True, height=config['new_size'], width=config['new_size'])
+
+# blank_img = Image.open(opts.blank_img).resize((config['new_size'], config['new_size']))
+# to_tensor = transforms.ToTensor()
+# blank_img = to_tensor(blank_img).unsqueeze(0)
+# images_encode.append(blank_img)
+# for data in content_loader:
+#     images_encode.append((data.data+1)/2)
+
+# num_style = 0
+# for data in style_loader:
+#     num_style += 1
+#     images_encode.append((data.data+1)/2)
     
-    data = data.to(device)
-    with torch.no_grad():
-        _, style = encode_style(data)
+#     data = data.to(device)
+#     with torch.no_grad():
+#         _, style = encode_style(data)
 
-    for j in range(num_input):
-        content = content_encode[j]
-        with torch.no_grad():
-            img = decode(content, style)
-        images_encode.append((img.cpu().data+1)/2)
+#     for j in range(num_input):
+#         content = content_encode[j]
+#         with torch.no_grad():
+#             img = decode(content, style)
+#         images_encode.append((img.cpu().data+1)/2)
 
-assert len(images_encode) == (1+num_input)*(1+num_style)
-save_images(opts.output_folder, 'encode.jpg', images_encode, num_input+1)
+# assert len(images_encode) == (1+num_input)*(1+num_style)
+# save_images(opts.output_folder, 'encode.jpg', images_encode, num_input+1)
 
