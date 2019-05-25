@@ -65,9 +65,10 @@ encode = trainer.gen_a.encode if opts.a2b else trainer.gen_b.encode # encode fun
 decode = trainer.gen_b.decode if opts.a2b else trainer.gen_a.decode # decode function
 encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # encode function
 
-transform_list = [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+transform_list = [transforms.Resize(config['new_size'])]
 if opts.centercrop:
-    transform_list = [transforms.CenterCrop(config['new_size'])].extend(transform_list)
+    transform_list.append(transforms.CenterCrop((config['new_size'], config['new_size'])))
+transform_list.extend([transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 transform = transforms.Compose(transform_list)
 
 style_random = torch.randn(opts.num_style, style_dim, 1, 1).to(device)
@@ -80,7 +81,7 @@ with open(opts.input_list, 'w') as f:
         img = Image.open(os.path.join(opts.input_folder, i+'.jpg'))
         img = transform(img)
         img = img.to(device)
-        content, _ = encode(img)
+        content, _ = encode(img.unsqueeze(0))
         for j in range(opts.num_style):
             img_trans = decode(content, style_random[j].unsqueeze(0))
             img_trans = (img_trans.cpu().data+1)/2
