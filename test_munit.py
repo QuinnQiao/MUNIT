@@ -73,7 +73,7 @@ transform = transforms.Compose(transform_list)
 
 style_random = torch.randn(opts.num_style, style_dim, 1, 1).to(device)
 
-with open(opts.input_list, 'w') as f:
+with open(opts.input_list) as f:
     for i in f:
         i = i.strip()
         if i.startswith('#'):
