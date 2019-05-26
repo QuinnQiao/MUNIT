@@ -26,7 +26,7 @@ parser.add_argument('--output_folder', type=str, help="output image folder")
 parser.add_argument('--checkpoint', type=str, help="checkpoint of autoencoders")
 parser.add_argument('--a2b', type=int, help="1 for a2b and 0 for b2a", default=1)
 parser.add_argument('--seed', type=int, default=1, help="random seed")
-parser.add_argument('--num_style',type=int, default=20, help="number of styles to sample")
+parser.add_argument('--num_style',type=int, default=19, help="number of styles to sample")
 parser.add_argument('--style_folder', type=str, default=None, help="style image folder")
 parser.add_argument('--output_path', type=str, default='.', help="path for logs, checkpoints, and VGG model weight")
 parser.add_argument('--gpu_id', type=int, default=0, help="which gpu to use")
@@ -63,7 +63,8 @@ trainer.to(device)
 trainer.eval()
 encode = trainer.gen_a.encode if opts.a2b else trainer.gen_b.encode # encode function
 decode = trainer.gen_b.decode if opts.a2b else trainer.gen_a.decode # decode function
-encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # encode function
+decode2 = trainer.gen_a.decode if opts.a2b else trainer.gen_b.decode # decode function
+# encode_style = trainer.gen_b.encode if opts.a2b else trainer.gen_a.encode # encode function
 
 transform_list = [transforms.Resize(config['new_size'])]
 if opts.centercrop:
@@ -81,11 +82,14 @@ with open(opts.input_list) as f:
         img = Image.open(os.path.join(opts.input_folder, i+'.jpg'))
         img = transform(img)
         img = img.to(device)
-        content, _ = encode(img.unsqueeze(0))
+        content, style = encode(img.unsqueeze(0))
+        img, _ = decode2(content, style)
+        img = (img.cpu().data+1)/2
+        vutils.save_image(img, os.path.join(opts.output_folder, i+'_0.jpg'), nrow=1)
         for j in range(opts.num_style):
             img_trans = decode(content, style_random[j].unsqueeze(0))
             img_trans = (img_trans.cpu().data+1)/2
-            vutils.save_image(img_trans, os.path.join(opts.output_folder, i+'_{}.jpg'.format(j)), nrow=1)
+            vutils.save_image(img_trans, os.path.join(opts.output_folder, i+'_{}.jpg'.format(j+1)), nrow=1)
 
 # # random style
 # content_loader = get_loader(opts.input_folder, 1, False, new_size=config['new_size'], 
