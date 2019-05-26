@@ -79,11 +79,12 @@ with open(opts.input_list) as f:
         i = i.strip()
         if i.startswith('#'):
             continue
+        print("handling"+i)
         img = Image.open(os.path.join(opts.input_folder, i+'.jpg'))
         img = transform(img)
         img = img.to(device)
         content, style = encode(img.unsqueeze(0))
-        img, _ = decode2(content, style)
+        img = decode2(content, style)
         img = (img.cpu().data+1)/2
         vutils.save_image(img, os.path.join(opts.output_folder, i+'_0.jpg'), nrow=1)
         for j in range(opts.num_style):
